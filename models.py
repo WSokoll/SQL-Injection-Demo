@@ -1,5 +1,5 @@
 from flask_login import UserMixin
-from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION
+from sqlalchemy.dialects.sqlite import REAL
 
 from app import db
 
@@ -47,13 +47,13 @@ class Currency(db.Model):
     __tablename__ = 'Currency'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(50), nullable=False)
-    exchange_rate = db.Column(DOUBLE_PRECISION, nullable=False)
+    exchange_rate = db.Column(REAL, nullable=False)
 
 
 class SubAccount(db.Model):
     __tablename__ = 'SubAccount'
     id = db.Column(db.Integer(), primary_key=True)
-    balance = db.Column(DOUBLE_PRECISION)
+    balance = db.Column(REAL)
     account_id = db.Column(db.Integer(), db.ForeignKey('Account.id'), nullable=False)
     currency_id = db.Column(db.Integer(), db.ForeignKey('Currency.id'), nullable=False)
 
@@ -64,7 +64,7 @@ class InternalTransaction(db.Model):
     transaction_from = db.Column(db.Integer(), db.ForeignKey('User.id'), nullable=False)
     transaction_to = db.Column(db.Integer(), db.ForeignKey('User.id'), nullable=False)
     currency_id = db.Column(db.Integer(), db.ForeignKey('Currency.id'), nullable=False)
-    value = db.Column(DOUBLE_PRECISION, nullable=False)
+    value = db.Column(REAL, nullable=False)
     transaction_date = db.Column(db.DateTime(), nullable=False)
     name = db.Column(db.String(255))
 
@@ -75,7 +75,7 @@ class ExternalTransaction(db.Model):
     transaction_from = db.Column(db.String(500))
     transaction_to = db.Column(db.Integer(), db.ForeignKey('User.id'), nullable=False)
     currency_id = db.Column(db.Integer(), db.ForeignKey('Currency.id'), nullable=False)
-    value = db.Column(DOUBLE_PRECISION, nullable=False)
+    value = db.Column(REAL, nullable=False)
     transaction_date = db.Column(db.DateTime(), nullable=False)
     name = db.Column(db.String(255))
 
@@ -86,6 +86,6 @@ class CurrencyExchange(db.Model):
     user_id = db.Column(db.Integer(), db.ForeignKey('User.id'), nullable=False)
     currency_from = db.Column(db.Integer(), db.ForeignKey('Currency.id'), nullable=False)
     currency_to = db.Column(db.Integer(), db.ForeignKey('Currency.id'), nullable=False)
-    value_old = db.Column(DOUBLE_PRECISION, nullable=False)
-    value_new = db.Column(DOUBLE_PRECISION, nullable=False)
+    value_old = db.Column(REAL, nullable=False)
+    value_new = db.Column(REAL, nullable=False)
     exchange_date = db.Column(db.DateTime(), nullable=False)

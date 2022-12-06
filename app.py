@@ -1,3 +1,4 @@
+import os
 import secrets
 import datetime
 
@@ -6,6 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 
 from passlib.hash import sha256_crypt
+from sqlalchemy.dialects import sqlite
+from sqlalchemy.sql.ddl import CreateTable
 
 login_manager = LoginManager()
 db = SQLAlchemy()
@@ -17,10 +20,10 @@ def create_app():
     # Load config from file config.py
     app.config.from_pyfile('config.py')
 
+    basedir = os.path.abspath(os.path.dirname(__file__))
+
     # Database connection
-    app.config['SQLALCHEMY_DATABASE_URI'] = (f"postgresql://{app.config['DB_USER']}:{app.config['DB_PASSWORD']}"
-                                             f"@{app.config['DB_HOST']}:{app.config['DB_PORT']}"
-                                             f"/{app.config['DB_NAME']}")
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'database/telewallet.db')}"
 
     db.init_app(app)
 
@@ -53,9 +56,23 @@ def create_app():
     # TEST DATA
     # @app.before_first_request
     # def create_test_data():
-    #     from models import Account, Currency, SubAccount
 
-        # --------------------------- phase one ------------------------------
+        # from models import RolesUsers, Role, User, Account, Currency, SubAccount, InternalTransaction,\
+        #     ExternalTransaction, CurrencyExchange
+
+        # # --------------------------- raw sql to create tables ------------------------------
+        # print(CreateTable(RolesUsers.__table__).compile(dialect=sqlite.dialect()))
+        # print(CreateTable(Role.__table__).compile(dialect=sqlite.dialect()))
+        # print(CreateTable(User.__table__).compile(dialect=sqlite.dialect()))
+        # print(CreateTable(Currency.__table__).compile(dialect=sqlite.dialect()))
+        # print(CreateTable(SubAccount.__table__).compile(dialect=sqlite.dialect()))
+        # print(CreateTable(InternalTransaction.__table__).compile(dialect=sqlite.dialect()))
+        # print(CreateTable(ExternalTransaction.__table__).compile(dialect=sqlite.dialect()))
+        # print(CreateTable(CurrencyExchange.__table__).compile(dialect=sqlite.dialect()))
+        # print(CreateTable(Account.__table__).compile(dialect=sqlite.dialect()))
+        # # -----------------------------------------------------------------------------------
+
+        # # --------------------------- phase one ------------------------------
         # account1 = Account(active=True, created_at=datetime.datetime.now())
         # account2 = Account(active=True, created_at=datetime.datetime.now())
         #
@@ -69,9 +86,9 @@ def create_app():
         # db.session.add(currency2)
         # db.session.add(currency3)
         # db.session.commit()
-        # --------------------------------------------------------------------
+        # # --------------------------------------------------------------------
 
-        # --------------------------- phase two ------------------------------
+        # # --------------------------- phase two ------------------------------
         # sub_account1 = SubAccount(balance=100.1, account_id=1, currency_id=1)
         # sub_account2 = SubAccount(balance=1000.2, account_id=1, currency_id=2)
         # sub_account3 = SubAccount(balance=2000.0, account_id=2, currency_id=1)
@@ -100,6 +117,6 @@ def create_app():
         # db.session.add(user2)
         #
         # db.session.commit()
-        # --------------------------------------------------------------------
+        # # --------------------------------------------------------------------
 
     return app
