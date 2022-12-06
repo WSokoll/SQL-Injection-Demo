@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container col-6 mx-auto rounded">
+        <div class="text-center">
+            <h1>Transakcja wewnętrzna</h1>
+
+            <h4>Aktualny stan konta: {{ "%.2f"|format(sub_account.balance) }} {{ currency.name.upper() }}</h4>
+        </div>
+        <form method="POST"
+              action="{{ url_for('bp_transaction.get_post_internal', account_id=sub_account.account_id, currency_name=currency.name) }}">
+            {{ form.csrf_token }}
+            <div class="mb-3">
+                {{ form.username_from.label(class_="form-label") }}:
+                {{ form.username_from (class_="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.username_to.label(class_="form-label") }}:
+                {{ form.username_to (class_="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.title.label(class_="form-label") }}:
+                {{ form.title (class_="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.value.label(class_="form-label") }}:
+                {{ form.value (class_="form-control", id_="exchange-amount", type_="text") }}
+            </div>
+            <h5 class="mt-2 text-center">Stan konta po przelewie:</h5><h6 id="balance-after" class="text-center"></h6>
+            <button type="submit" class="btn btn-primary mt-3 mb-2 mx-auto">
+                Wyślij przelew
+            </button>
+
+        </form>
+        <a class="btn btn-secondary"
+           href="{{ url_for("bp_account.get", account_id=sub_account.account_id, currency_name='pln') }}">Powrót</a>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+
+    <script>
+        $().ready(function () {
+
+            let balance = {{ "%.2f"|format(sub_account.balance) }};
+            let currency_ = '{{ currency.name.upper() }}';
+            $("#balance-after").text(balance + " " + currency_);
+
+            $("#exchange-amount").keyup(function () {
+                let value = parseFloat($("#exchange-amount").val());
+                let outcome;
+                if (value <= balance) {
+                    outcome = (balance - value).toString() + " " + currency_;
+                } else if (isNaN(value)) {
+                    outcome = balance.toString() + " " + currency_;
+                } else {
+                    outcome = "Nie posiadasz wystarczających środków";
+                }
+                $("#balance-after").text(parseFloat(outcome).toFixed(2));
+            });
+
+
+        });
+    </script>
+{% endblock %}

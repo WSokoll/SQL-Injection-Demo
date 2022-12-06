@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="text-center">Twoje konto</h1>
+    <div class="container-xxl">
+        <div class="row mx-auto mt-2">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body gap-2 mx-auto text-center">
+                        <h5 class="card-title">Stan konta</h5>
+                        <h4>{{ "%.2f"|format(sub_account.balance) }} {{ currency.name.upper() }} </h4>
+                        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas"
+                                data-bs-target="#offcanvasBottom" aria-controls="offcanvasBottom">Zmień walutę
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-body d-grid gap-2 mx-auto text-center">
+                        <h5 class="card-title">Dostępne akcje</h5>
+                        <div>
+                            <a class="btn btn-secondary"
+                               href="{{ url_for("bp_transaction.get_post_internal", account_id=sub_account.account_id, currency_name=currency.name) }}">
+                                Transakcja wewnętrzna
+                            </a>
+                        </div>
+                        <div>
+                            <a class="btn btn-secondary"
+                               href="{{ url_for("bp_exchange.get_post", account_id=sub_account.account_id) }}">
+                                Wymiana walut
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">Historia transakcji</h4>
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">Typ transakcji</th>
+                                <th scope="col">Kwota transakcji</th>
+                                <th scope="col">Tytuł</th>
+                                <th scope="col">Data transakcji</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in history %}
+                                <tr>
+                                    {% if item.transaction_date %}
+                                        {% if item.transaction_from == "tpay" %}
+                                            <td>Doładowanie konta</td>
+                                            <td class="text-success">
+                                                <b>+{{ item.value }} {{ currency.name.upper() }}</b></td>
+                                            <td>{{ item.name }}</td>
+                                            <td>{{ item.transaction_date }}</td>
+                                        {% elif item.transaction_to == current_user.id %}
+                                            <td>Transakcja wewnętrzna</td>
+                                            <td class="text-success">
+                                                <b>+{{ item.value }} {{ currency.name.upper() }}</b></td>
+                                            <td>{{ item.name }}</td>
+                                            <td>{{ item.transaction_date }}</td>
+                                        {% else %}
+                                            <td>Transakcja wewnętrzna</td>
+                                            <td class="text-danger"><b>-{{ item.value }} {{ currency.name.upper() }}</b>
+                                            </td>
+                                            <td>{{ item.name }}</td>
+                                            <td>{{ item.transaction_date }}</td>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if item.currency_to == currency.id %}
+
+                                            <td>Wymiana walut</td>
+                                            <td class="text-success">
+                                                <b>+{{ item.value_new }} {{ currency.name.upper() }}</b></td>
+                                            <td></td>
+                                            <td>{{ item.exchange_date }}</td>
+                                        {% else %}
+
+                                            <td>Wymiana walut</td>
+                                            <td class="text-danger">
+                                                <b>-{{ item.value_old }} {{ currency.name.upper() }}</b></td>
+                                            <td></td>
+                                            <td>{{ item.exchange_date }}</td>
+
+                                        {% endif %}
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-2 mx-auto">
+
+            <div class="col-md">
+                <div class="card text-center">
+                    <div class="card-header">Doładowanie konta (aktualnie jedyną wspieraną walutą jest PLN)</div>
+                    <div class="card-body">
+                        <form method="POST" action="#">
+                            {{ form.csrf_token }}
+                            <div class="row">
+                                <div class="col-md-4 mx-auto">
+                                    {{ form.value.label(class_="form-label") }}
+                                    <div class="input-group mb-1">
+                                        <span class="input-group-text">PLN</span>
+
+                                        {{ form.value (class_="form-control") }}
+                                    </div>
+                                    <button type="submit" class="btn btn-primary mt-2">Doładuj konto</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="offcanvasBottom"
+         aria-labelledby="offcanvasBottomLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasBottomLabel">Wybierz walutę</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                    aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body small">
+            <div class="list-group" id="offcanvas">
+            </div>
+        </div>
+    </div>
+    </div
+{% endblock %}
+
+{% block scripts %}
+
+    <!-- CHARTJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <script>
+        $().ready(function () {
+            let id = {{ sub_account.account_id }};
+
+            //populating the currency list in offcanvas
+            let list_curr = {{ currency_list|safe }};
+
+            for (let i in list_curr) {
+                let curr = list_curr[i];
+                $("<a>", {
+                    "class": "list-group-item list-group-item-action",
+                    text: curr.toUpperCase(),
+                    href: '/account/' + id + '/' + curr
+                }).appendTo("#offcanvas");
+                console.log(curr.toUpperCase());
+            }
+
+        });
+    </script>
+
+
+{% endblock %}
