@@ -2,9 +2,10 @@ import os
 import secrets
 import datetime
 
-from flask import Flask, render_template
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_admin import Admin
 
 from passlib.hash import sha256_crypt
 from sqlalchemy.dialects import sqlite
@@ -12,6 +13,7 @@ from sqlalchemy.sql.ddl import CreateTable
 
 login_manager = LoginManager()
 db = SQLAlchemy()
+admin = Admin(name='Admin - TeleWallet', template_mode='bootstrap4')
 
 
 def create_app():
@@ -36,6 +38,11 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.filter_by(id=int(user_id)).first()
+
+    admin.init_app(app)
+
+    from admin import admin_panel_init
+    admin_panel_init(admin, db)
 
     # Register blueprints
     from views.home import bp as bp_home
