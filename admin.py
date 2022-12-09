@@ -1,4 +1,4 @@
-from flask import url_for, abort, redirect
+from flask import url_for
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 from flask_login import current_user
