@@ -1,8 +1,5 @@
-import hashlib
-
-import requests as requests
-from flask import Blueprint, render_template, abort, url_for, flash, redirect
-from flask_login import login_required, current_user
+from flask import Blueprint, render_template, abort, flash
+from flask_login import login_required
 from flask_wtf import FlaskForm
 from sqlalchemy import or_, and_
 from wtforms import StringField
