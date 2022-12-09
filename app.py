@@ -2,18 +2,37 @@ import os
 import secrets
 import datetime
 
-from flask import Flask
+from flask import Flask, abort, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
-from flask_admin import Admin
+from flask_login import LoginManager, current_user
+from flask_admin import Admin, AdminIndexView
 
 from passlib.hash import sha256_crypt
 from sqlalchemy.dialects import sqlite
 from sqlalchemy.sql.ddl import CreateTable
 
+
+class CustomAdminIndexView(AdminIndexView):
+    def is_accessible(self):
+        if not current_user.is_active and not current_user.is_authenticated:
+            return False
+
+        import models
+        roles_users = models.RolesUsers.query.filter_by(user_id=current_user.id).one_or_none()
+        role = models.Role.query.filter_by(id=roles_users.role_id).one_or_none()
+        return roles_users is not None and role is not None and role.name == 'Admin'
+
+    def _handle_view(self, name, **kwargs):
+        if not self.is_accessible():
+            if current_user.is_authenticated:
+                abort(403)
+            else:
+                return redirect(url_for('bp_auth.login'))
+
+
 login_manager = LoginManager()
 db = SQLAlchemy()
-admin = Admin(name='Admin - TeleWallet', template_mode='bootstrap4')
+admin = Admin(name='Admin - TeleWallet', template_mode='bootstrap4', index_view=CustomAdminIndexView())
 
 
 def create_app():
@@ -106,14 +125,14 @@ def create_app():
         # db.session.add(sub_account3)
         # db.session.add(sub_account4)
         #
-        # user1 = User(email="test1@test.com",
+        # user1 = User(email="user@test.com",
         #              password=sha256_crypt.encrypt("test1"),
         #              confirmed_at=datetime.datetime.now(),
         #              account_id=1,
         #              name='Adam Nowak',
         #              fs_uniquifier=123)
         #
-        # user2 = User(email="test2@test.com",
+        # user2 = User(email="admin@test.com",
         #              password=sha256_crypt.encrypt("test2"),
         #              confirmed_at=datetime.datetime.now(),
         #              account_id=2,
