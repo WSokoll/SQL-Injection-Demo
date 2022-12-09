@@ -57,40 +57,14 @@ def get(account_id, currency_name='pln'):
     history.extend(exchanges)
     history.sort(key=lambda x: x.transaction_date if hasattr(x, 'transaction_date') else x.exchange_date, reverse=True)
 
-    # External transaction
+    # External transaction - disabled
     class ExternalTransactionForm(FlaskForm):
         value = StringField('Kwota doładowania', validators=[InputRequired(), Regexp(r'^[0-9.]{1,}[.][0-9][0-9]$')])
 
     form = ExternalTransactionForm()
 
     if form.validate_on_submit():
-
-        body = {
-          "id": 1010,
-          "amount": float(form.value.data),
-          "description": "Testing",
-          "crc": 3214,
-          "md5sum": hashlib.md5(('1010&' + form.value.data + '&3214&' + 'demo').encode()).hexdigest(),
-          "group": 150,
-          "return_url": 'http://127.0.0.1:5000' + url_for('bp_transaction.get_external_success',
-                                                          account_id=current_user.account_id,
-                                                          value=form.value.data),
-          "return_error_url": 'http://127.0.0.1:5000' +
-                              url_for('bp_transaction.get_external_error', account_id=current_user.account_id),
-          "language": "pl",
-          "email": current_user.email,
-          "name": current_user.name,
-          "api_password": "p@$$w0rd#@!"
-        }
-
-        API_ADD = 'https://docs.tpay.com/Proxy.php/api/gw/75f86137a6635df826e3efe2e66f7c9a946fdde1/transaction/create'
-        res = requests.post(API_ADD, json=body)
-
-        if res.status_code == 200:
-            print(res.json())
-            return redirect(res.json()['url'])
-        else:
-            abort(404)
+        flash('Funkcjonalość została wyłączona.')
 
     elif form.is_submitted():
         for field_name, errors in form.errors.items():
