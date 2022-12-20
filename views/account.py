@@ -5,6 +5,7 @@ from sqlalchemy import or_, and_
 from wtforms import StringField
 from wtforms.validators import InputRequired, Regexp
 
+from app import db
 from models import SubAccount, Currency, User, InternalTransaction, CurrencyExchange, ExternalTransaction
 
 bp = Blueprint('bp_account', __name__, template_folder='templates')
@@ -15,11 +16,16 @@ bp = Blueprint('bp_account', __name__, template_folder='templates')
 @login_required
 def get(account_id, currency_name='pln'):
 
-    currency = Currency.query.filter_by(name=currency_name).first()
+    q = db.session.execute(f"""SELECT id from "Currency" WHERE name = '{currency_name}'""")
+    currency = {
+        'id': q.mappings().all()[0]['id'],
+        'name': currency_name
+    }
+
     if not currency:
         abort(404)
 
-    sub_account = SubAccount.query.filter_by(account_id=account_id, currency_id=currency.id).first()
+    sub_account = SubAccount.query.filter_by(account_id=account_id, currency_id=currency['id']).first()
     if not sub_account:
         abort(404)
 
@@ -34,18 +40,18 @@ def get(account_id, currency_name='pln'):
     user = User.query.filter_by(account_id=account_id).first()
 
     in_transactions = InternalTransaction.query.filter(or_(and_(InternalTransaction.transaction_from == user.id,
-                                                                InternalTransaction.currency_id == currency.id),
+                                                                InternalTransaction.currency_id == currency['id']),
                                                            and_(InternalTransaction.transaction_to == user.id,
-                                                                InternalTransaction.currency_id == currency.id))).\
+                                                                InternalTransaction.currency_id == currency['id']))).\
         order_by(InternalTransaction.transaction_date).all()
 
     ex_transactions = ExternalTransaction.query.filter(and_(ExternalTransaction.transaction_to == user.id,
-                                                            ExternalTransaction.currency_id == currency.id))
+                                                            ExternalTransaction.currency_id == currency['id']))
 
     exchanges = CurrencyExchange.query.filter(or_(and_(CurrencyExchange.user_id == user.id,
-                                                       CurrencyExchange.currency_from == currency.id),
+                                                       CurrencyExchange.currency_from == currency['id']),
                                                   and_(CurrencyExchange.user_id == user.id,
-                                                       CurrencyExchange.currency_to == currency.id))).\
+                                                       CurrencyExchange.currency_to == currency['id']))).\
         order_by(CurrencyExchange.exchange_date).all()
 
     history = []
