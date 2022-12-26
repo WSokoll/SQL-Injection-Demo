@@ -3,6 +3,7 @@ import secrets
 import datetime
 
 from flask import Flask, abort, redirect, url_for
+from flask_jsglue import JSGlue
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 from flask_admin import Admin, AdminIndexView
@@ -33,6 +34,7 @@ class CustomAdminIndexView(AdminIndexView):
 login_manager = LoginManager()
 db = SQLAlchemy()
 admin = Admin(name='Admin - TeleWallet', template_mode='bootstrap4', index_view=CustomAdminIndexView())
+jsglue = JSGlue()
 
 
 def create_app():
@@ -59,6 +61,7 @@ def create_app():
         return User.query.filter_by(id=int(user_id)).first()
 
     admin.init_app(app)
+    jsglue.init_app(app)
 
     from admin import admin_panel_init
     admin_panel_init(admin, db)
