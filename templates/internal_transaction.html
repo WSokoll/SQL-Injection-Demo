@@ -18,6 +18,21 @@
                 {{ form.username_to.label(class_="form-label") }}:
                 {{ form.username_to (class_="form-control") }}
             </div>
+
+            <button class="btn btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#userSearch" aria-expanded="false" aria-controls="userSearch">
+              Wyszukaj odbiorców
+            </button>
+
+            <div class="collapse" id="userSearch">
+              <div class="card card-body mb-3">
+                <div class="input-group">
+                  <input type="search" class="form-control rounded" id="search-input" placeholder="Imię i nazwisko" aria-label="Imię i nazwisko" aria-describedby="search-addon" />
+                  <button type="button" class="btn btn-outline-primary" id="search-btn">Wyszukaj</button>
+                </div>
+                <div class="mt-2" id="search-results"></div>
+              </div>
+            </div>
+
             <div class="mb-3">
                 {{ form.title.label(class_="form-label") }}:
                 {{ form.title (class_="form-control") }}
@@ -59,7 +74,15 @@
                 $("#balance-after").text(parseFloat(outcome).toFixed(2));
             });
 
-
+            $("#search-btn").click(function (){
+                fetch(Flask.url_for('bp_transaction.get_internal_user', {'name': $("#search-input").val()}))
+                    .then(function (response) {
+                        response.json().then(function (data) {
+                            $("#search-results").html('<code class="prettyprint">' + JSON.stringify(data) + '</code>');
+                            console.log(data)
+                        });
+                    });
+            });
         });
     </script>
 {% endblock %}

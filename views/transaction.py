@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import Blueprint, render_template, abort, redirect, url_for, flash
+from flask import Blueprint, render_template, abort, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, HiddenField
@@ -76,6 +76,14 @@ def get_post_internal(account_id=0, currency_name='pln'):
     return render_template('internal_transaction.html', currency=currency, sub_account=sub_account_from, form=form)
 
 
+@bp.route('/transaction/internal/user/<string:name>', methods=['GET'])
+@login_required
+def get_internal_user(name: str):
+    results = db.session.execute(f"SELECT name from 'User' where name = '{name}'")
+    users = [str(result) for result in results]
+    return jsonify({'users': users})
+
+
 @bp.route('/transaction/external/success/<int:account_id>/<string:value>', methods=['GET'])
 @login_required
 def get_external_success(account_id, value):
@@ -98,7 +106,8 @@ def get_external_success(account_id, value):
     db.session.add(transaction)
     db.session.commit()
 
-    return render_template('external_success.html', account_id=account_id)
+    # return render_template('external_success.html', account_id=account_id)
+    abort(404)
 
 
 @bp.route('/transaction/external/error/<int:account_id>', methods=['GET'])
@@ -108,4 +117,5 @@ def get_external_error(account_id):
     if account_id != current_user.account_id:
         abort(404)
 
-    return render_template('external_error.html', account_id=account_id)
+    # return render_template('external_error.html', account_id=account_id)
+    abort(404)
