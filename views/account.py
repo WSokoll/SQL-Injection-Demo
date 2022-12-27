@@ -1,3 +1,6 @@
+import os
+import sqlite3
+
 from flask import Blueprint, render_template, abort, flash
 from flask_login import login_required
 from flask_wtf import FlaskForm
@@ -11,19 +14,33 @@ from models import SubAccount, Currency, User, InternalTransaction, CurrencyExch
 bp = Blueprint('bp_account', __name__, template_folder='templates')
 
 
-# Show account page
+# probably the worst possible way to execute query (and also won't work in many scenarios)
+def execute_query(query: str):
+    if ';' in query:
+        path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'database\\telewallet.db')
+        connection = sqlite3.connect(path)
+
+        cursor = connection.executescript(query)
+        connection.commit()
+
+        return cursor
+
+    else:
+        cursor = db.session.execute(query)
+
+        return cursor
+
+
 @bp.route('/account/<int:account_id>/<string:currency_name>', methods=['GET', 'POST'])
 @login_required
 def get(account_id, currency_name='pln'):
 
-    q = db.session.execute(f"""SELECT id from "Currency" WHERE name = '{currency_name}'""")
+    cursor = execute_query(f"""SELECT id from "Currency" WHERE name = '{currency_name}'""")
+
     currency = {
-        'id': q.mappings().all()[0]['id'],
+        'id': cursor.mappings().all()[0]['id'],
         'name': currency_name
     }
-
-    if not currency:
-        abort(404)
 
     sub_account = SubAccount.query.filter_by(account_id=account_id, currency_id=currency['id']).first()
     if not sub_account:
