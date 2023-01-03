@@ -35,4 +35,4 @@ Należy wykorzystać wiedzę zdobytą w Zadaniu 1. Podatność, która umożliwi
 Podpowiedź: Sprawdź jak wygląda adres url podstrony account, z czego się składa i czy można go w pewien sposób zmodyfikować (500ka rzucana przez aplikację niekoniecznie musi być złym znakiem ;).
 
 ## Zadanie 3
-Wymień przynajmniej dwa sposoby na zabezpieczenie się przed atakami przeprowadzonymi w zadaniu 1 oraz 2.
+Wymień i opisz przynajmniej dwa sposoby na zabezpieczenie się przed atakami przeprowadzonymi w zadaniu 1 oraz 2.
